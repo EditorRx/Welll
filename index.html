@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Ultimate Formatter</title>
+<title>Exam Paper Generator</title>
 
 <!-- Libraries -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -13,37 +13,56 @@ body {
     font-family: Arial;
     padding: 20px;
 }
+
+/* Input */
 textarea {
     width: 100%;
     height: 150px;
     padding: 10px;
 }
+
+/* A4 Layout */
 #output {
-    white-space: pre-wrap;
+    width: 210mm;
+    min-height: 297mm;
     margin-top: 20px;
-    padding: 10px;
-    border: 1px solid #ccc;
-    min-height: 150px;
+    padding: 15mm;
+    box-sizing: border-box;
+    border: 1px solid #000;
+
+    column-count: 2; /* 🔥 2 column layout */
+    column-gap: 20px;
+
+    font-size: 12px; /* smaller text */
+    line-height: 1.4;
+
+    white-space: pre-wrap;
+}
+
+/* Keep question bold only */
+b {
+    font-weight: bold;
 }
 </style>
 </head>
 
 <body>
 
-<h2>🔥 Smart Question Formatter</h2>
+<h2>🔥 Exam Paper Generator (2 Column)</h2>
 
 <textarea id="inputText" placeholder="Paste questions here..."></textarea><br>
 
 <button onclick="formatText()">Format</button>
 <button onclick="downloadPDF()">Download PDF</button>
 
+<!-- Editable Output -->
 <div id="output" contenteditable="true"></div>
 
 <script>
 function formatText() {
     let text = document.getElementById("inputText").value;
 
-    // Match: number. ... ? OR —
+    // Bold only question line (number to ? or —)
     let formatted = text.replace(/\d+\.[^\n?—]*(\?|—)/g, function(match) {
         return "<b>" + match + "</b>";
     });
@@ -56,29 +75,17 @@ async function downloadPDF() {
 
     let element = document.getElementById("output");
 
-    let canvas = await html2canvas(element);
+    let canvas = await html2canvas(element, {
+        scale: 2
+    });
+
     let imgData = canvas.toDataURL("image/png");
 
     let pdf = new jsPDF('p', 'mm', 'a4');
 
-    let imgWidth = 210;
-    let pageHeight = 297;
-    let imgHeight = canvas.height * imgWidth / canvas.width;
+    pdf.addImage(imgData, 'PNG', 0, 0, 210, 297);
 
-    let heightLeft = imgHeight;
-    let position = 0;
-
-    pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-    heightLeft -= pageHeight;
-
-    while (heightLeft > 0) {
-        position = heightLeft - imgHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
-    }
-
-    pdf.save("Exam_Output.pdf");
+    pdf.save("Exam_Paper.pdf");
 }
 </script>
 
